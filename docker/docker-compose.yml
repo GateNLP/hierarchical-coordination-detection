@@ -1,0 +1,66 @@
+x-data-volume:
+    &data_volume
+    type: bind
+    source: ./data
+    target: /coordination/data
+
+x-config-volume:
+    &config_volume
+    type: bind
+    source: ./default-config.yaml
+    target: /coordination/config/config.yaml
+    
+x-backend-development:
+    &backend_development
+    # note this this only updates the backend service not
+    # the UI, but in general for development purposes this
+    # is usually enough. If you are developing the UI then
+    # probably run it separately and have npm do hot reloads
+    watch:
+        - action: sync+restart
+          path: ../service/coordination
+          target: /coordination/coordination
+
+services:
+    redis:
+        image: redis:4.0.6-alpine
+        ports:
+          - "6379:6379"
+        volumes:
+            - ./redis:/data
+
+    coordination-app:
+        image: app-image:latest
+        container_name: coordination-app
+        build:
+            context: ../
+            dockerfile: ./docker/Dockerfile
+        restart: always
+        environment:
+            - COORDINATION_APP_CONFIG=/coordination/config/config.yaml
+        ports:
+            - '5000:5000'
+        volumes:
+            - *data_volume
+            - *config_volume
+        develop:
+            *backend_development
+
+    worker:
+        image: app-image:latest
+        deploy:
+            # number of worker containers to run - adjust as appropriate
+            replicas: 2
+        depends_on:
+            - redis
+        command:
+            - worker
+        environment:
+            - COORDINATION_APP_CONFIG=/coordination/config/config.yaml
+        links:
+            - redis
+        volumes:
+            - *data_volume
+            - *config_volume
+        develop:
+            *backend_development
