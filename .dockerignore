@@ -2,8 +2,8 @@
 /service/venv_*
 /ui/dist
 /ui/node_modules
-/data
-/redis
+/docker/data
+/docker/redis
 
 /.idea
 *.iml
