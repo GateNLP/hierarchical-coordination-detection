@@ -1,0 +1,14 @@
+/service/venv
+/service/venv_*
+/ui/dist
+/ui/node_modules
+/data
+/redis
+
+/.idea
+*.iml
+__pycache__
+
+
+test_*.py
+/service/coordination/**/tests
