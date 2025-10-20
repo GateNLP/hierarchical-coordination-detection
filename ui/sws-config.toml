@@ -1,0 +1,29 @@
+# This is the configuration for static-web-server (https://static-web-server.net)
+# used to serve just the frontend of the coordination UI in production mode.
+
+[general]
+
+#### Address & Root dir
+host = "::"
+port = 8088
+root = "./dist"
+
+#### Logging
+log-level = "error"
+
+#### Serve pre-compressed files if appropriate to client's Accept-Encoding
+compression-static = true
+
+#### Health check endpoint at /health
+health = true
+
+#### Instead of returning 404 for unknown URLs, just serve the index page.
+#### This allows for deep linking if/when we start using a router with URL paths.
+page-fallback = "./dist/index.html"
+
+[advanced]
+
+[[advanced.headers]]
+# Assets have hashed file names, so can treat as immutable
+source = "assets/**"
+headers = { Cache-Control = "max-age=31536000, immutable" }

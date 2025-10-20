@@ -1,0 +1,5 @@
+/venv
+/static
+
+# anything venv related
+venv_*
