@@ -67,34 +67,3 @@ app.register_blueprint(post_bp)
 @app.route("/healthz")
 def healthcheck():
     return dict(alive=True)
-
-
-# These routes are for backward compatibility with existing clients
-@app.route("/process", methods=["POST"])
-def process():
-    return job_process()
-
-
-@app.route("/status", methods=["POST"])
-def status():
-    return job_status()
-
-
-@app.route("/job/<job_id>")
-def job_detail(job_id):
-    return getJob(job_id)
-
-
-@app.route("/result/<job_id>")
-def result(job_id):
-    return sendResult(job_id)
-
-
-@app.route("/graph/<job_id>")
-def graph(job_id):
-    return sendGraphResult(job_id)
-
-
-@app.route("/post/<job_id>/<post_id>")
-def post_detail(job_id, post_id):
-    return sendPost(job_id, post_id)
