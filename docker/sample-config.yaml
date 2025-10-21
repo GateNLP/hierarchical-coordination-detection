@@ -1,0 +1,38 @@
+# if you have data you wish to process that is in an Elasticsearch index
+# then you can configure the server, indexes, and field mapping here
+elasticsearch:
+  server_name: # just a simple name to refer to the specific server
+    hosts: [http://elasticsearch.host] # a list of Elasticsearch hosts
+    indexes:
+       index_title: # just a simple name to refer to an index configuration
+         index-name: index_name # the index name or pattern you want to access
+         user-id: author.id # the index field containing the unique user ID
+         screen-name: author.name # the index field containing the user screen name
+         post-id: _id # the field containing the post ID
+         timestamp: published_date # the field containing the post timestamp
+         text: text # the field containing the post text (only used if the link isn't in a field)
+         link-types: # link types allow us to define the fields used for the links 
+           hashtag: # simple name for the type
+           - field: "hashtag" # the field in the index that holds the value(s)
+           url: # another link type
+           - standard-pattern: "url" # this one uses a standard pattern to pull URLs from the text
+         examples: # if you want to provide examples in the UI then you can define them here
+           "Example, All Posts (Hashtag)": # the label as it will appear in the UI
+             query: # the Elasticsearch query to run
+               match_all: {} # here we are just using everything in the index
+             link_type: hashtag # the link type to use
+
+
+# if you want to change the configuration of the shared folder datastore then
+datastore:
+  type: shared_folder
+  path: /path/to/the/folder # this defaults to /coordination/data
+
+
+# if you would prefer to use an S3 datastore (note authentication etc.
+# is handled through the normal machine level config files used by the
+# boto3 library
+datastore:
+  type: s3
+  bucket: bucket_name # the name of the S3 bucket
+  prefix: prefix_str # prefix to use within the bucket; defaults to None

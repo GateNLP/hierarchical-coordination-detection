@@ -21,6 +21,7 @@ x-data-volume:
 # must also be provided as an environment variable to the web
 # app and worker containers. Commented out examples are provided
 # below.
+# Configuration samples are provided in sample-config.yaml
 x-config-volume:
     &config_volume
     type: bind
