@@ -1,0 +1,272 @@
+openapi: 3.1.0
+info:
+  title: Coordination Detection
+  description: >
+    This services analyses a set of social media posts to detect
+    coordination between users. Currently the service uses hashtags
+    within the post as the item of interest when calculating
+    a coordination score.
+  version: 1.0.0
+servers:
+  - url: 'http://example.svc.cluster.local'
+
+paths:
+  "/process":
+    post:
+      parameters:
+      - name: options
+        description: >
+          a string encoding the options to use. Currently this
+          is just if we should use reposts or not when detecting
+          coordination. Value of 1 means we should ignore the reposts,
+          while 0 means we should include them. Note that these options
+          only apply to requests containing a text/csv request body. 
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+            - 0
+            - 1
+      requestBody:
+        content:
+          "text/csv":
+            schema:
+              "$ref": "#/components/schemas/csvFile"
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/jsonFile"
+      responses:
+        '200':
+          description: json file with the job status
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/status"
+
+
+  "/job/{job_id}":
+    get:
+      parameters:
+      - name: job_id
+        description: >
+          the ID of the job for which you want to know the current status
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '404':
+          description: if the job ID doesn't exist return a 404
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/status"
+        '200':
+          description: json file with the job status
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/status"
+  
+  "/result/{job_id}":
+    get:
+      parameters:
+      - name: job_id
+        description: >
+          the ID of the job for which you want the result file
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '404':
+          description: if the job ID doesn't exist return a 404
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/status"
+        '200':
+          description: a CSV containing the calculated coordination scores
+          content:
+            "text/csv":
+              schema:
+                "$ref": "#/components/schemas/csvFile"
+  
+  "/graph/{job_id}":
+    get:
+      parameters:
+      - name: job_id
+        description: >
+          the ID of the job for which you want the result file
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '404':
+          description: if the job ID doesn't exist return a 404
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/status"
+        '200':
+          description: >
+            a graphology based JSON file describing the network
+            of coordination we have detected          
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/graphology"
+  
+
+components:
+  schemas:
+    csvFile:
+      type: string
+    jsonFile:
+      type: object
+      properties:
+        elasticsearch:
+          type: string
+          description: >
+            the elasticsearch config to use. Note that this is not
+            simply the URL of the server. Rather it's a key into a
+            map of configurations held by the backend service. This
+            means we don't leak the URL of auth details.
+        index:
+          type: string
+          description: >
+            the name of the index to access. note this isn't the name
+            of the actual index within an elasticsearch instance, but
+            rather the name of the index configuration as defined in
+            the backend of this service.
+        link_type:
+          type: string
+          description: >
+            in the backend config you can define what we call link
+            types. Basically these are the names of field(s) in the
+            indexed documents that should be used as the links to
+            detect coordination. A value here selects the config
+            and does two thing. Firstly it adds to the query to only
+            return documents that contain field values, and secondly
+            it then pulls those fields from matching documents as
+            the links of interest. If this field is not supplied then
+            the original behaviour is used; i.e. we extract the full
+            document text and use a regex to extract hashtags as the
+            links of interest.
+        query:
+          type: object
+          description: >
+            an elasticsearch query which determines the portion of
+            the index that will be processed to look for coordination
+          additionalProperties: true
+      
+    status:
+      type: object
+      properties:
+        jobID:
+          type: string
+          description: the ID of the job
+        status:
+          type: string
+          description: the current status of the job
+        error:
+          type: string
+          description: >
+            if a problem occurs then there will be a, hopefully,
+            helpful error message. note that if this parameter is
+            present than jobID and status may not be.
+    graphology:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >
+                  the unique ID for this node, usually a numeric ID so probably
+                  not a good label for the node when displayed
+              attributes:
+                type: object
+                properties:
+                  label:
+                    type: string
+                    description: >
+                      the screen name of the user account, which is ideal for
+                      labelling the node in a UI
+                  posts:
+                    type: array
+                    description: >
+                      the IDs of the posts made by this user
+                    items:
+                      type: string
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+                description: >
+                  the ID of the node at the start of this edge. Note that this
+                  is an undirected graph though so no meaning should be read
+                  into the source/target ordering of an edge
+              target:
+                type: string
+                description: >
+                  the ID of the node at the start of this edge. Note that this
+                  is an undirected graph though so no meaning should be read
+                  into the source/target ordering of an edge
+              attributes:
+                type: object
+                properties:
+                  size:
+                    type: number
+                    description: >
+                      the size of the edge, useuful for UI layout. Calculated
+                      as the sum of all hashtag weights between the two nodes
+                      this edge represents.
+                  hashtags:
+                    type: array
+                    description: >
+                      an array of hashtags all of which have been used by both
+                      the source and target of this edge. Note that the array
+                      is ordered so that the weight for a hahstag is at the same
+                      offset in the sibling weights array
+                    items:
+                      type: string
+                  weights:
+                    type: array
+                    description: >
+                      the weight associated with a hashtag used by both the source
+                      and target of this edge. Note that the array is ordered so that
+                      the hastag associated with a given weight is at the same offset
+                      in the sibling hashtags array
+                    items:
+                      type: number
+                  source:
+                    type: array
+                    description: >
+                      an array of arrays of post IDs, where each post was sent by the
+                      user in the source position of this edge. The top level array is
+                      arranged such that all post IDs in the sub array include the
+                      hashtag at the same offset in the sibling hashtags array. 
+                    items:
+                      type: array
+                      items:
+                        type: string
+                  target:
+                    type: array
+                    description: >
+                      an array of arrays of post IDs, where each post was sent by the
+                      user in the target position of this edge. The top level array is
+                      arranged such that all post IDs in the sub array include the
+                      hashtag at the same offset in the sibling hashtags array. 
+                    items:
+                      type: array
+                      items:
+                        type: string
