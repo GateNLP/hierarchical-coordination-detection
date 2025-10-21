@@ -30,7 +30,7 @@ if __name__ == "__main__":
         help="CSV file to write results into (will be overwritten if it already exists")
     
     parser.add_argument("-c", "--complexity", type=int, choices=[1,2,3], default=3,
-        help="Algorithm complexity 1) no filtering, 2) pairwise user filtering, 3) pairwise and group filtering of users.")
+        help="Algorithm complexity 1) shared the same links, 2) pairwise level coordination, 3) pairwise and group level coordination.")
     
     args = parser.parse_args()
     

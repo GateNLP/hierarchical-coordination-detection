@@ -1,9 +1,26 @@
+# this volume holds the data for processing and the output files, if the
+# service is configured for shared folder storage. Note that the same
+# volume must be provided to both the main web app containter and the
+# worker containers so that they can both access the files.
+# This volume is not needed if the service is configured to use an S3
+# compatible storage.
 x-data-volume:
     &data_volume
     type: bind
     source: ./data
     target: /coordination/data
 
+# the default configuration will allow the service to run using a
+# shared folder for storage and without any provided examples, i.e.
+# you will be able to upload CSV files for procesing. If you wish
+# to further configure the service than you can do by mounting a
+# YAML file into the web app and worker containers. This volume
+# assumues that file is "./default-config.yaml". Note the use
+# of this volume is currently commented out in the rest of this
+# compose file. If you want to use a config file then it's path
+# must also be provided as an environment variable to the web
+# app and worker containers. Commented out examples are provided
+# below.
 x-config-volume:
     &config_volume
     type: bind
@@ -24,10 +41,6 @@ x-backend-development:
 services:
     redis:
         image: redis:4.0.6-alpine
-        ports:
-          - "6379:6379"
-        volumes:
-            - ./redis:/data
 
     coordination-app:
         image: app-image:latest
@@ -36,13 +49,13 @@ services:
             context: ../
             dockerfile: ./docker/Dockerfile
         restart: always
-        environment:
-            - COORDINATION_APP_CONFIG=/coordination/config/config.yaml
+        #environment:
+            #- COORDINATION_APP_CONFIG=/coordination/config/config.yaml
         ports:
             - '5000:5000'
         volumes:
             - *data_volume
-            - *config_volume
+            #- *config_volume
         develop:
             *backend_development
 
@@ -55,12 +68,12 @@ services:
             - redis
         command:
             - worker
-        environment:
-            - COORDINATION_APP_CONFIG=/coordination/config/config.yaml
+        #environment:
+            #- COORDINATION_APP_CONFIG=/coordination/config/config.yaml
         links:
             - redis
         volumes:
             - *data_volume
-            - *config_volume
+            #- *config_volume
         develop:
             *backend_development
