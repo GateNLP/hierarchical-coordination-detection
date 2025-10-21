@@ -238,17 +238,6 @@ def calcCoordination(
             "PostIDs_2"
         ]
 
-        # these two lines don't make any sense to me, as how can there be no post IDs, and if we have
-        # more than one why are we only returning the first one?
-        #
-        # Turns out if we run this it moves the post IDs out of arrays in the result JSON which breaks
-        # the UI. Question is can we ever have more than one entry. If not then this is a good idea
-        # as it would probabkly save quite a few characters in the JSON output, and hence reduce the
-        # file size we have to transmit back to the browser
-        # Final_coordination_records['PostIDs_from']= Final_coordination_records['PostIDs_1'].apply(lambda x: x[0] if len(x) > 0 else None)
-        # Final_coordination_records['PostIDs_to']= Final_coordination_records['PostIDs_2'].apply(lambda x: x[0] if len(x) > 0 else None)
-        # Final_coordination_records=Final_coordination_records[['From','To','Numeric_Link_ID','Weight','PostIDs_from','PostIDs_to']]
-
         return generate_result(Final_coordination_records, posts)
 
     # Identifying users sharing suspiciously (pairwise level)
@@ -269,15 +258,6 @@ def calcCoordination(
     if speed_option == SpeedOption.PAIRWISE_FILTERING:
         Final_coordination_records = pairwis_coordination.copy()
 
-        # can we rename instead of copying the columns
-        # Final_coordination_records['PostIDs_from'] = Final_coordination_records['Post_IDs_from']
-        # Final_coordination_records['PostIDs_to'] = Final_coordination_records['Post_IDs_to']
-
-        # and again I don't understand what we need these three lines for
-        # Final_coordination_records['PostIDs_from']= Final_coordination_records['PostIDs_from'].apply(lambda x: x[0] if len(x) > 0 else None)
-        # Final_coordination_records['PostIDs_to']= Final_coordination_records['PostIDs_to'].apply(lambda x: x[0] if len(x) > 0 else None)
-        # Final_coordination_records=Final_coordination_records[['From','To','Numeric_Link_ID','Weight','PostIDs_from','PostIDs_to']]
-
         return generate_result(Final_coordination_records, posts)
 
     # Identifying users sharing suspiciously (group level)
@@ -286,11 +266,6 @@ def calcCoordination(
     Final_coordination_records = divergence_assessment(
         group_coordination, link_count, user_count, user_link_prob, pairwis_coordination
     )
-
-    # and again I don't understand what we need these three lines for
-    # Final_coordination_records['PostIDs_from']= Final_coordination_records['PostIDs_from'].apply(lambda x: x[0] if len(x) > 0 else None)
-    # Final_coordination_records['PostIDs_to']= Final_coordination_records['PostIDs_to'].apply(lambda x: x[0] if len(x) > 0 else None)
-    # Final_coordination_records=Final_coordination_records[['From','To','Numeric_Link_ID','Weight','PostIDs_from','PostIDs_to']]
 
     result = generate_result(Final_coordination_records, posts)
 
