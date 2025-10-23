@@ -1,6 +1,8 @@
 import { Box } from '@mui/material/';
 import Typography from '@mui/material/Typography';
-import bigInt from 'big-integer';
+
+// formatting code is heavily based on this jsfiddle
+// https://jsfiddle.net/MrPolywhirl/0gyxp4ck/
 
 const
     MS_DAYS = 8.64e7,
@@ -37,23 +39,21 @@ const formatDuration = (duration, includeAll) => {
 };
 
 export const TimeGap = (props) => {
-    const { post1, post2 } = props;
+    const { posts, post1, post2 } = props;
 
-    var t1 = (+bigInt(post1).shiftRight(22))
-    var t2 = (+bigInt(post2).shiftRight(22))
+    var t1 = posts[post1].time;
+    var t2 = posts[post2].time;
 
+    // the difference in milliseconds between the two posts
     var diff = Math.abs(t1-t2)
 
-    // note that this is twitter specific as it determines the gap based
-    // on the snowflake algorithm. The code is based on this example
-    // (didn't seem worth installing the plugin for the simple shift)
-    // https://www.npmjs.com/package/twitter-snowflake-to-date
+    if (diff > 0)
+        // if there is a difference in time then display it nicely formatted
+        return (
+            <Box sx={{ m: "5px", textAlign: "center" }}>
+                <Typography color="text.secondary" variant="body2">{formatDuration(fromMillis(diff))} later</Typography>
+            </Box>)
 
-    // formatting code is heavily based on this jsfiddle
-    // https://jsfiddle.net/MrPolywhirl/0gyxp4ck/
-
-    return (
-        <Box sx={{ m: "5px", textAlign: "center" }}>
-            <Typography color="text.secondary" variant="body2">{formatDuration(fromMillis(diff))} later</Typography>
-        </Box>)
+    // if there is no difference then don't add anything to the DOM
+    return null;    
 }

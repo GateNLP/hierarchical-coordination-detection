@@ -179,7 +179,7 @@ export const EdgeDisplay = (props) => {
                                         return (
                                             <React.Fragment key={"pos_"+index}>
                                                 {show && <TimeGap posts={posts} post1={timelines[hashtag][index-1]} post2={post}/>}
-                                                <PostDisplay anonymize={anonymize} sx={sx} post={posts ? posts[post] : post} jobID={jobID} />
+                                                <PostDisplay anonymize={anonymize} sx={sx} post={posts && posts[post].text ? posts[post] : post} jobID={jobID} />
                                             </React.Fragment>
                                         )
                                     })
